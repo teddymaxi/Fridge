@@ -15,7 +15,7 @@ class EFW{
 		int step_enable_pin = 38;
 
         //Пины энкодера
-        uint8_t pin1 = 36;
+        uint8_t pin1 = 36;//test commit
         uint8_t pin2 = 38;
         uint8_t pin3 = 42;
         uint8_t pin4 = 44;
