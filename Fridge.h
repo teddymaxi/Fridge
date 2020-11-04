@@ -1,13 +1,37 @@
-#ifndef EFW_H
-#define EFW_H
+//#ifndef EFW_H
+//#define EFW_H
 
 #define ACE128_ARDUINO_PINS 1
 #include <AccelStepper.h>
-#include "ACE128.h"
-#include "ACE128map12345678.h" 
+#include "ACE128.h" //" to use local library 
+#include "ACE128map12345678.h" //encoder map 
 
-class EFW{
-    public:
+
+class FW{
+
+    //orchestrating class to do it all  
+
+    // dir, step, enable, hall, hallZero, encPins{1..8}, num_filt
+    //EFW EFW1(54, 55, 38, A14, A15, 36, 38, 42, 44, 52, 50, 31, 29, 24);
+
+
+    //EFW::EFW (int dirPin, int stepPin, int step_enable_pin, int hallPin, int hallPinZero,
+    // uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t pin5, uint8_t pin6, uint8_t pin7, uint8_t pin8, int num_filt)
+
+    //NOTE no need to define input class variables only method inputs
+
+ 
+    // TODO move to main arduino file 
+    Serial.println("[INFO]_FW_Initialization");
+    // TODO if else exception style
+        
+    private:
+        //pins for each FW
+        //motor pins 
+        //motor speed and accel
+        //hall sensor pins 
+        //Encoder pins     
+
         //Пины двигателя
         int dirPin;
         int stepPin;
@@ -40,79 +64,31 @@ class EFW{
         //однако если  это не так то столкновения не избежать.
 
         //Количество фильтров
-        int num_filt = 24;
+        int num_filt = 22;
         //TODO уточнить кол-во фильтров на одном колесе, по памяти Эверьян Говорил что суммарно их 44=> на каждом колесе 22
 
-
-
         //1 - т.к. используем драйвер
-        int motorInterfaceType = 1;
-        // Объект двигателя
-        AccelStepper stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
-
-        //Объект энкодера. 8 цифр - соотвествие пинов энкодера с пинами ардуино (например, пин 1 энкодера соответсвует пину pin1 арудино)
-        ACE128 myACE = ACE128 (pin1, pin2, pin3,  pin4, pin5,  pin6, pin7, pin8, (uint8_t*)encoderMap_12345678, 0);
-
-        EFW (int dirPin, int stepPin, int hallPin, int hallPinZero,
-        uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t pin5, uint8_t pin6, uint8_t pin7, uint8_t pin8,
-        int num_filt) ;
-        //это функция с именем как у класса 
-
-        //он определяет сами функции вне класса и инициализирует их внутри класса (норм подход не увеерн что стоит оставлять( для кода в 200 строк ненужное усложнение))
-        //Определить направление вращения для калибровки    
-        int define_dir(int pin);
-
-        //Вычисляет количество позиций между start и finish по часовой стрелке
-        int clockwise_shift(int start, int finish);
-        //Вычисляет количество позиций между start и finish против часовой стрелки
-        int anticlockwise_shift(int start, int finish);
-
-        //Уточнить положение с помощью магнитов и датчика Холла
-        void adjust(int pin);
-
-        //Передвинуться в заданную позицию
-        void move_to_filt(int target_filt);
-
-};
-
-EFW::EFW (int dirPin, int stepPin, int step_enable_pin, int hallPin, int hallPinZero,
- uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t pin5, uint8_t pin6, uint8_t pin7, uint8_t pin8, int num_filt) {
-    //здесь публичные параметры этого класса преобразуются в приватные 
-    //закоментил в свяхи с тем, что убрал дефолтные пины для устройств во избежание ошибок
-    // в связи с этим необходимо создать в библиотеке exception на пустоту данных параметров
-    // this->dirPin = dirPin;
-    // this->stepPin = stepPin;
-	// this->step_enable_pin = step_enable_pin;
-    // this->hallPin = hallPin;
-    // this->hallPinZero = hallPinZero;
-
-    // this->pin1 = pin1;
-    // this->pin2 = pin2;
-    // this->pin3 = pin3;
-    // this->pin4 = pin4;
-    // this->pin5 = pin5;
-    // this->pin6 = pin6;
-    // this->pin7 = pin7;
-    // this->pin8 = pin8;
-    // this->num_filt = num_filt;
-	
-    //TODO
-	myACE = ACE128 (pin1, pin2, pin3,  pin4, pin5,  pin6, pin7, pin8, (uint8_t*)encoderMap_12345678, 0);
-	stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
-	pinMode(step_enable_pin, OUTPUT);
-	digitalWrite(step_enable_pin, LOW);
-
-    myACE.begin();
+        int motorInterfaceType = 1;    
 }
 
-void EFW::adjust(int pin){
+class Calibration
+{
+    Serial.println("[INFO]_Calibration");
+    //class for initial calibration on startup 
+    //Calibration filterChange 2 main classe callable in orchestrator
+    private:
+
+    public:
+    //method to discover positions of all filter on according FW
+    void Calibration::adjust(){
+        //TODO speed adjust parameter
     stepper.setMaxSpeed(1000.0); 
 
     //Определяем направление вращения
     int dir = define_dir(pin);
     stepper.setSpeed(25*dir);
 
-    Serial.println("Begining adjustment");
+    Serial.println("[INFO]_Begining adjustment");
     Serial.println(dir);
     
     int old_pos = stepper.currentPosition();
@@ -142,47 +118,38 @@ void EFW::adjust(int pin){
     while(stepper.distanceToGo() != 0){
         stepper.runSpeed();
     }
-    Serial.println("Final refinments");
+    Serial.println("[INFO]_Final refinments");
     old_val = new_val;          
     new_val = analogRead(pin);
     Serial.print(old_val);
     Serial.print(" ");
     Serial.println(new_val);
 
-    Serial.println("Finishing adjustment");
+    Serial.println("[INFO]_Finishing adjustment");
 
 
 }
 
-int EFW::define_dir(int pin){
-    stepper.setMaxSpeed(1000.0);
-    int old_val;
-    int new_val;
-    old_val = analogRead(pin);
-    //Сдвигаемся на 8 шагов, сравниваем измеренное значение с тем, что было в начале, и на основе этого выбираем напарвление
-    stepper.setCurrentPosition(0);
-    stepper.setSpeed(100);
-    while(stepper.currentPosition() != 8)
-    {
-        stepper.runSpeed();
-    }
-    new_val = analogRead(pin);
 
-    Serial.println("Calibration done");
-    Serial.println(old_val);
-    Serial.println(new_val);
-
-    //!!!!! Следить за показаниями датчика! Около магнита они могут быть как больше, так и меньше, в зависимости от этого надо менять знак c <=
-    // на >=. Аналогично в функции adjust
-    if (new_val <= old_val){ 
-        return 1;
-    }else{
-        return -1;
-    }
 }
 
+class filterChange{
+    Serial.println("[INFO]_filterChange");
+    //инициализация энкодера и мотора
+    myACE = ACE128 (epin1, epin2, epin3,  epin4, epin5,  epin6, epin7, epin8, (uint8_t*)encoderMap_12345678, 0);
+	stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
+	pinMode(step_enable_pin, OUTPUT);
+	digitalWrite(step_enable_pin, LOW);
 
-int EFW::anticlockwise_shift(int start, int finish){
+    myACE.begin();
+    //class for changing to X filter
+    //Calibration filterChange 2 main classe callable in orchestrator
+    private:
+
+    public:
+
+    //functions to choose the shortest route fo FilterChange
+int filterChange::anticlockwise_shift(int start, int finish){
     if (finish > start){
         return 127 - finish + start + 1;    
     }
@@ -190,7 +157,7 @@ int EFW::anticlockwise_shift(int start, int finish){
     
 }
 
-int EFW::clockwise_shift(int start, int finish){
+int filterChange::clockwise_shift(int start, int finish){
     if (finish >= start){
         return finish - start ;           
     }
@@ -198,10 +165,9 @@ int EFW::clockwise_shift(int start, int finish){
     
 }
 
-
-void EFW::move_to_filt(int target_filt){
+    void filterChange::move_to_filt(int target_filt){
     int target_pos = 127 * target_filt/num_filt;
-    stepper.setMaxSpeed(1000.0);   
+    stepper.setMaxSpeed(1000.0);
     cur_pos = myACE.upos();   //upos - unsigned position, т.е. число от 0 до 127
     
     int init_pos = cur_pos;
@@ -238,5 +204,42 @@ void EFW::move_to_filt(int target_filt){
     }
     
 }
+}
 
-#endif
+}
+
+ class Sensor
+ {
+     // sensors (hall and encoder) controlling class 
+ private:
+     //since we got 2 it requires to store incoming pins for X encoder in private variables 
+    int Sensor::Hall(int HallPin){
+        a = get()
+        Serial.println("[INFO]_Hall");
+    //function to read sensor data 
+    }
+    int Sensor::Encoder(){
+        Serial.println("[INFO]_Encoder");
+    }
+}
+
+
+
+class MotorController
+{
+    Serial.println("[INFO]_MotorController");
+    //мы же можем узнать направление мотора при калибровке ручной, есть ли смысл его поределять ? 
+    //т.к. оно зависит от установки 
+        // class to handle Motor movement for x amount of steps 
+        // or moving to set position
+        //and adjusting it according to sensor data 
+    private:
+    // reqs a function to correct motor movement with help of encoder and hall sensor 
+    int MotorController::MoveTo(){
+        Serial.println("[INFO]_MoveTo");
+    }
+    int MotorController::MoveFor(){
+        Serial.println("[INFO]_MoveFor");
+    }
+}
+
