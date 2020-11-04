@@ -6,7 +6,7 @@
 #include "ACE128.h" //" to use local library 
 #include "ACE128map12345678.h" //encoder map 
 
-
+//fixing 
 class FW{
 
     //orchestrating class to do it all  
