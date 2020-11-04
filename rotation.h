@@ -23,14 +23,9 @@ class EFW{
         uint8_t pin6;
         uint8_t pin7;
         uint8_t pin8;
-
-        //Пин датчика Холла
-        int hallPin;
-        //Пин датчика Холла для нулевой позиции
-        int hallPinZero;
-
-        //Максимально допустимое ускорение
-        int max_acc = -100;
+        int hallPin; //Пин датчика Холла
+        int hallPinZero; //Пин датчика Холла для нулевой позиции
+        int max_acc = -100; //Максимально допустимое ускорение
 
         //Текущая позиция и фильтр
         int cur_pos = 0;
@@ -68,7 +63,7 @@ class EFW{
         int anticlockwise_shift(int start, int finish);
 
         //Уточнить положение с помощью магнитов и датчика Холла
-        void adjust(int pin);
+        void adjust(int pin, int MaxSpeed);
 
         //Передвинуться в заданную позицию
         void move_to_filt(int target_filt);
@@ -77,26 +72,15 @@ class EFW{
 
 EFW::EFW (int dirPin, int stepPin, int step_enable_pin, int hallPin, int hallPinZero,
  uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t pin5, uint8_t pin6, uint8_t pin7, uint8_t pin8, int num_filt) {
-    //здесь публичные параметры этого класса преобразуются в приватные 
-    //закоментил в свяхи с тем, что убрал дефолтные пины для устройств во избежание ошибок
-    // в связи с этим необходимо создать в библиотеке exception на пустоту данных параметров
-    // this->dirPin = dirPin;
-    // this->stepPin = stepPin;
-	// this->step_enable_pin = step_enable_pin;
-    // this->hallPin = hallPin;
-    // this->hallPinZero = hallPinZero;
 
-    // this->pin1 = pin1;
-    // this->pin2 = pin2;
-    // this->pin3 = pin3;
-    // this->pin4 = pin4;
-    // this->pin5 = pin5;
-    // this->pin6 = pin6;
-    // this->pin7 = pin7;
-    // this->pin8 = pin8;
-    // this->num_filt = num_filt;
+ //null exception handler
+        if(dirPin==null || stepPin==null || step_enable_pin==null || pin1==null || pin2==null || pin3==null || pin4==null || pin5==null || pin6==null || pin7
+        ==null || pin8==null || hallPin==null || hallPinZero==null || MaxSpeed==null){
+            Serial.println("[ERROR] one EFW is null");
+            sys.exit(0);
+        }
 	
-    //TODO
+    
 	myACE = ACE128 (pin1, pin2, pin3,  pin4, pin5,  pin6, pin7, pin8, (uint8_t*)encoderMap_12345678, 0);
 	stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
 	pinMode(step_enable_pin, OUTPUT);
@@ -105,8 +89,8 @@ EFW::EFW (int dirPin, int stepPin, int step_enable_pin, int hallPin, int hallPin
     myACE.begin();
 }
 
-void EFW::adjust(int pin){
-    stepper.setMaxSpeed(1000.0); 
+void EFW::adjust(int pin, int MaxSpeed){
+    stepper.setMaxSpeed(MaxSpeed); 
 
     //Определяем направление вращения
     int dir = define_dir(pin);
