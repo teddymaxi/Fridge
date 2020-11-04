@@ -1,0 +1,45 @@
+EFW::EFW (int dirPin, int stepPin, int step_enable_pin, int hallPin, int hallPinZero,
+ uint8_t pin1, uint8_t pin2, uint8_t pin3, uint8_t pin4, uint8_t pin5, uint8_t pin6, uint8_t pin7, uint8_t pin8, int num_filt) {
+  //orchestrating class to do it all   
+
+
+ }
+
+ class HallSensor
+ {
+     
+
+     //hall sensor controlling class 
+ private:
+     /* data */
+ public:
+ 
+
+
+int HallSensor::Reader(){
+
+}
+ };
+
+
+
+class MotorController
+{
+
+
+    // class to handle Motor movement for x amount of steps 
+private:
+    /* data */
+public:
+
+};
+
+class 
+{
+private:
+    /* data */
+public:
+   
+    
+};
+
