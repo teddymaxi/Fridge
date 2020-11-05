@@ -1,5 +1,5 @@
-//#ifndef EFW_H
-//#define EFW_H
+#ifndef Fridge_H
+#define Fridge_H
 
 #define ACE128_ARDUINO_PINS 1
 #include <AccelStepper.h>
@@ -7,7 +7,7 @@
 #include "ACE128map12345678.h" //encoder map 
 
 //fixing 
-class FW{
+class EFW{
 
     //orchestrating class to do it all  
 
@@ -26,49 +26,23 @@ class FW{
     // TODO if else exception style
         
     private:
-        //pins for each FW
-        //motor pins 
-        //motor speed and accel
-        //hall sensor pins 
-        //Encoder pins     
-
-        //Пины двигателя
-        int dirPin;
-        int stepPin;
-		// >>> enable its output to turn on the engine 
-		int step_enable_pin;
-
-        //Пины энкодера
-        uint8_t pin1;
-        uint8_t pin2;
-        uint8_t pin3;
-        uint8_t pin4;
-        uint8_t pin5;
-        uint8_t pin6;
-        uint8_t pin7;
-        uint8_t pin8;
-
-        //Пин датчика Холла
-        int hallPin;
-        //Пин датчика Холла для нулевой позиции
-        int hallPinZero;
-
-        //Максимально допустимое ускорение
-        int max_acc = -100;
-
-        //Текущая позиция и фильтр
-        int cur_pos = 0;
-        int cur_filt = 0;
-        //TODO 
-        //потенциальная дыра нужен фикс: мы считаем что при включение фильтры находятся в 0 позиции
-        //однако если  это не так то столкновения не избежать.
-
+       
         //Количество фильтров
         int num_filt = 22;
         //TODO уточнить кол-во фильтров на одном колесе, по памяти Эверьян Говорил что суммарно их 44=> на каждом колесе 22
 
-        //1 - т.к. используем драйвер
-        int motorInterfaceType = 1;    
+public:
+EFW::EFW (Sensor mySensor, Stepper myStepper) { //TODO accel Steper
+  
+  }
+
+  void setFilterNum (int filterNum) {
+    num_filt = filterNum;
+  }
+
+  int calibration () {
+    
+  }
 }
 
 class Calibration
@@ -208,24 +182,95 @@ int filterChange::clockwise_shift(int start, int finish){
 
 }
 
- class Sensor
+
+
+// sensors (hall and encoder) controlling class 
+ class Sensor 
  {
-     // sensors (hall and encoder) controlling class 
  private:
+        //Пины энкодера
+        uint8_t pin1;
+        uint8_t pin2;
+        uint8_t pin3;
+        uint8_t pin4;
+        uint8_t pin5;
+        uint8_t pin6;
+        uint8_t pin7;
+        uint8_t pin8;
+        int hallPin; //Пин датчика Холла
+        ACE128 myACE;
+        //int encInVal = 0;
+        int hallInVal = 0;
+ public:
+
+Sensor::Sensor (uint8_t pin1, uint8_t pin2, uint8_t pin3,  uint8_t pin4, uint8_t pin5,  uint8_t pin6, uint8_t pin7, uint8_t pin8, int hallPin;){
+  this-> pin1 = pin1;
+  this->pin2 = pin2;
+  this->pin3 = pin3;
+  this->pin4 = pin4;
+  this->pin5 = pin5;
+   this->pin6 = pin6;
+    this->pin7 = pin7;
+    this->pin8 = pin8;
+    this-> hallpin = hallpin;
+    myACE = ACE128 (pin1, pin2, pin3,  pin4, pin5,  pin6, pin7, pin8, (uint8_t*)encoderMap_12345678, 0);
+}
+ 
+ void hallInit (int hallPin) {
+  this-> hallpin = hallpin;
+ }
+ void encoderInit (uint8_t pin1, uint8_t pin2, uint8_t pin3,  uint8_t pin4, uint8_t pin5,  uint8_t pin6, uint8_t pin7, uint8_t pin8, (uint8_t*)encoderMap_12345678, 0){
+  this-> pin1 = pin1;
+  this->pin2 = pin2;
+  this->pin3 = pin3;
+  this->pin4 = pin4;
+  this->pin5 = pin5;
+   this->pin6 = pin6;
+    this->pin7 = pin7;
+    this->pin8 = pin8;
+ }
      //since we got 2 it requires to store incoming pins for X encoder in private variables 
-    int Sensor::Hall(int HallPin){
-        a = get()
+    
+    
+    
+    
+    int Sensor::getHallData(int averaging){
+        //a = get()
+        int value;
+        for (int i = 0; i < averaging, i++) {
+          value += analogRead (hallPin);
+        }
         Serial.println("[INFO]_Hall");
     //function to read sensor data 
+    return value/averaging - hallInVal;
     }
-    int Sensor::Encoder(){
+    
+    
+    int Sensor::getEncoderData(){
+      
         Serial.println("[INFO]_Encoder");
+    return myACE.upos();
+    }
+
+    void Sensor::setStartEncPos(){
+      myACE.setZero();
+      Serial.println("[INFO]_EncoderZero");
+    }
+
+    void  Sensor::setStartHallPos(int averaging){
+      int value;
+      for (int i = 0; i < averaging, i++) {
+          value += analogRead (hallPin);
+      }
+        Serial.println("[INFO]_HallZero");
+    //function to read sensor data 
+    hallInVal = value/averaging;
     }
 }
 
 
 
-class MotorController
+/*class MotorController
 {
     Serial.println("[INFO]_MotorController");
     //мы же можем узнать направление мотора при калибровке ручной, есть ли смысл его поределять ? 
@@ -235,6 +280,10 @@ class MotorController
         //and adjusting it according to sensor data 
     private:
     // reqs a function to correct motor movement with help of encoder and hall sensor 
+    void setMaxAcceleration(int acc);
+    void setMaxVelocity(int vel);
+    void setAcceleration(int acc);
+    void setvelocity(int vel);
     int MotorController::MoveTo(){
         Serial.println("[INFO]_MoveTo");
     }
@@ -242,4 +291,6 @@ class MotorController
         Serial.println("[INFO]_MoveFor");
     }
 }
+*/
 
+#endif
