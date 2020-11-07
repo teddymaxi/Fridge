@@ -30,7 +30,7 @@
 // Use direct pin connection, disable pin expander code
 // Also disables all I2C activity unless ACE128_EEPROM_I2C is defined
 // Prior to v2.0.0 this was available by default along with the pin expanders
-// #define ACE128_ARDUINO_PINS
+#define ACE128_ARDUINO_PINS
 
 // end of user configurable #define statements
 
