@@ -32,7 +32,7 @@ class EFW{
         //TODO уточнить кол-во фильтров на одном колесе, по памяти Эверьян Говорил что суммарно их 44=> на каждом колесе 22
 
 public:
-EFW::EFW (Sensor mySensor, Stepper myStepper) { //TODO accel Steper
+EFW::EFW (Sensor mySensor, Stepper stepper, int zeroCordinate, int* filtersCordinates, int maxSpeed) { //TODO accel Steper
   
   }
 
@@ -40,12 +40,86 @@ EFW::EFW (Sensor mySensor, Stepper myStepper) { //TODO accel Steper
     num_filt = filterNum;
   }
 
-  int calibration () {
+  int adjust () {
+    Serial.println("[INFO]_Calibration");
+        //TODO speed adjust parameter
+    stepper.setMaxSpeed(maxSpeed); 
+
+    //Определяем направление вращения
+    int dir = define_dir();
+    stepper.setSpeed(25*dir);
+
+    Serial.println("[INFO]_Begining adjustment");
+    Serial.println(dir);
     
-  }
+    int old_pos = stepper.currentPosition();
+    int new_pos = stepper.currentPosition();   
+    int new_val= mySensor.getHallData(1);
+    int old_val = mySensor.getHallData(1);
+
+    //!!!!! Следить за показаниями датчика! Около магнита они могут быть как больше, так и меньше, в зависимости от этого надо менять знак c <=
+    // на >=. Аналогично в функции define_dir
+
+    while (new_val <= old_val){ //Пока не достигли максимума
+        stepper.runSpeed();
+        new_pos = stepper.currentPosition();
+        if (abs(old_pos - new_pos) >= 3){//Считываем значение с датчика Холла не каждый шаг, а с некоторым интервалом - чтобы не упираться в предел чувствительности датчика
+                                         //(В данном случае - считываем значение каждые 3 шага)
+            old_val = new_val;          
+            new_val = mySensor.getHallData(1);
+            old_pos = new_pos;
+            Serial.print(old_val);
+            Serial.print(" ");
+            Serial.println(new_val);
+        }
+    }
+    //Откатываемся чуть-чуть назад, потому что в предыдущем цикле мы проскочили максимум
+    stepper.move(-dir*3);
+    stepper.setSpeed(-25*dir);
+    while(stepper.distanceToGo() != 0){
+        stepper.runSpeed();
+    }
+    Serial.println("[INFO]_Final refinments");
+    old_val = new_val;          
+    new_val = mySensor.getHallData(1);
+    Serial.print(old_val);
+    Serial.print(" ");
+    Serial.println(new_val);
+
+    Serial.println("[INFO]_Finishing adjustment");
+
+
 }
 
-class Calibration
+int define_dir(){
+    stepper.setMaxSpeed(maxSpeed);
+    int old_val;
+    int new_val;
+    old_val = mySensor.getHallData(1);
+    //Сдвигаемся на 8 шагов, сравниваем измеренное значение с тем, что было в начале, и на основе этого выбираем напарвление
+    stepper.setCurrentPosition(0);
+    stepper.setSpeed(100);
+    while(stepper.currentPosition() != 8)
+    {
+        stepper.runSpeed();
+    }
+    new_val = mySensor.getHallData(1);
+
+    Serial.println("Calibration done");
+    Serial.println(old_val);
+    Serial.println(new_val);
+
+    //!!!!! Следить за показаниями датчика! Около магнита они могут быть как больше, так и меньше, в зависимости от этого надо менять знак c <=
+    // на >=. Аналогично в функции adjust
+    if (new_val <= old_val){ 
+        return 1;
+    }else{
+        return -1;
+    }
+}
+}
+
+/*class Calibration
 {
     Serial.println("[INFO]_Calibration");
     //class for initial calibration on startup 
@@ -182,7 +256,7 @@ int filterChange::clockwise_shift(int start, int finish){
 
 }
 
-
+*/
 
 // sensors (hall and encoder) controlling class 
  class Sensor 
@@ -225,9 +299,9 @@ Sensor::Sensor (uint8_t pin1, uint8_t pin2, uint8_t pin3,  uint8_t pin4, uint8_t
   this->pin3 = pin3;
   this->pin4 = pin4;
   this->pin5 = pin5;
-   this->pin6 = pin6;
-    this->pin7 = pin7;
-    this->pin8 = pin8;
+  this->pin6 = pin6;
+  this->pin7 = pin7;
+  this->pin8 = pin8;
  }
      //since we got 2 it requires to store incoming pins for X encoder in private variables 
     
