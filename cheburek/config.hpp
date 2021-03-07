@@ -7,6 +7,8 @@
 #define IMAGE_ROTATION 0
 #define RECT_COLOR {0,255,0,0}
 #define POINT_COLOR {128,128,0,128}
+#define POINT_SIZE 50
+#define WHITE {255, 255,255,255}
 #define PIXELS_PER_SM 10
 
 #define MAIN_WINDOW "Cheburek"

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/types.hpp>
 
@@ -25,7 +26,9 @@ public:
     void reset_drawing();
     bool mirrors_ready();
     void start(std::string img_name = "cheburek.jpg");
-    int imregionalmax(cv::Mat &input, int nLocMax, float threshold, float minDistBtwLocMax, cv::Mat &locations);
+    std::vector<cv::Point> imregionalmax(cv::Mat &input, int nLocMax, float threshold, float minDistBtwLocMax);
+    void adjust_brightness_contrast(cv::Mat &input, float brightness, float contrast);
+    void mark_maxima(cv::Mat &loc_img, const std::vector<cv::Point> &points);
     friend void onMouse(int event, int x, int y, int, void* data);
 };
 
