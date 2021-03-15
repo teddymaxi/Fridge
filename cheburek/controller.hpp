@@ -18,8 +18,12 @@ class Controller
     int image_rotation_deg;
 
     cv::Rect mirror1 = EMPTY_RECT;
+    int mirror1_tilt = 45; // DEG
     cv::Rect mirror2 = EMPTY_RECT;
+    int mirror2_tilt = 45; // DEG
     cv::Rect mouse = EMPTY_RECT;
+
+    bool model_completed = false;
 
 public:
     bool draw_ui();

@@ -7,9 +7,15 @@
 #define IMAGE_ROTATION 0
 #define RECT_COLOR {0,255,0,0}
 #define POINT_COLOR {128,128,0,128}
-#define POINT_SIZE 50
+#define POINT_SIZE 30
 #define WHITE {255, 255,255,255}
 #define PIXELS_PER_SM 10
+
+#define MIRROR_1_TILT 45
+#define MIRROR_2_TILT 45
+
+#define CYLINDER_RADIUS 30
+#define SPHERE_RADIUS 30
 
 #define MAIN_WINDOW "Cheburek"
 #define CONTROL_WINDOW "Control"
