@@ -25,7 +25,7 @@ void Controller::start(std::string img_name)
     
     reset_drawing();
 
-    info = "Mark first mirror";
+    info = "Mark upper mirror";
 
     namedWindow(MAIN_WINDOW, WINDOW_NORMAL);
     setMouseCallback(MAIN_WINDOW, &onMouse, this);
@@ -33,6 +33,12 @@ void Controller::start(std::string img_name)
     while(draw_ui());
 
     destroyAllWindows();
+}
+
+std::string svertex(double x, double y, double z, Point3i pivot)
+{
+    using namespace std;
+    return to_string(x + pivot.x) + " " + to_string(y + pivot.y) + " " + to_string(z + pivot.z);
 }
 
 bool Controller::draw_ui()
@@ -52,7 +58,7 @@ bool Controller::draw_ui()
     cvtColor(locs, locs, ColorConversionCodes::COLOR_BGR2GRAY);
     if(mirrors_ready())
     {
-        auto maxima = imregionalmax(locs, NUM_MAX, 60., 40);
+        auto maxima = imregionalmax(locs, NUM_MAX, 60., 90., 40);
         status = "Found " + std::to_string(maxima.size()) + " points.";
 
         mark_maxima(ui, maxima);
@@ -115,13 +121,116 @@ bool Controller::draw_ui()
                         }
                     }
                 }
-
-                std::cout << "Found spheres: " << std::endl;
-                for(auto &p : spheres)
-                {
-                    std::cout << p << std::endl;
-                }
             }
+
+            // MAKE MESHES AND WRITE TO A FILE
+
+            using namespace std;
+
+            ofstream output("points.stl");
+
+            cout << "Found spheres: " << endl;
+            for(size_t i = 0; i < spheres.size(); i++)
+            {
+                auto &p = spheres[i];
+                cout << p << endl;
+
+                // #TODO make short!
+
+                output << "solid_" << to_string(i) << '\n';
+                output << "   facet normal -1.0 0.0 0.0" << '\n';
+                output << "      outer loop" << '\n';
+                output << "         vertex " << svertex(0.0, 1.0, 1.0, p) << '\n';
+                output << "         vertex " << svertex(0.0, 1.0, 0.0, p) << '\n';
+                output << "         vertex " << svertex(0.0, 0.0, 1.0, p) << '\n';
+                output << "      endloop" << '\n';
+                output << "   endfacet" << '\n';
+                output << "   facet normal -1.0 0.0 0.0" << '\n';
+                output << "      outer loop" << '\n';
+                output << "         vertex " << svertex(0.0, 0.0, 1.0, p) << '\n';
+                output << "         vertex " << svertex(0.0, 1.0, 0.0, p) << '\n';
+                output << "         vertex " << svertex(0.0, 0.0, 0.0, p) << '\n';
+                output << "      endloop" << '\n';
+                output << "   endfacet" << '\n';
+
+                output << "   facet normal 0.0 0.0 1.0" << '\n';
+                output << "      outer loop" << '\n';
+                output << "         vertex " << svertex(1.0, 1.0, 1.0, p) << '\n';
+                output << "         vertex " << svertex(0.0, 1.0, 1.0, p) << '\n';
+                output << "         vertex " << svertex(1.0, 0.0, 1.0, p) << '\n';
+                output << "      endloop" << '\n';
+                output << "   endfacet" << '\n';
+                output << "   facet normal 0.0 0.0 1.0" << '\n';
+                output << "      outer loop" << '\n';
+                output << "         vertex " << svertex(1.0, 0.0, 1.0, p) << '\n';
+                output << "         vertex " << svertex(0.0, 1.0, 1.0, p) << '\n';
+                output << "         vertex " << svertex(0.0, 0.0, 1.0, p) << '\n';
+                output << "      endloop" << '\n';
+                output << "   endfacet" << '\n';
+
+                output << "   facet normal 1.0 0.0 0.0" << '\n';
+                output << "      outer loop" << '\n';
+                output << "         vertex " << svertex(1.0, 1.0, 0.0, p) << '\n';
+                output << "         vertex " << svertex(1.0, 1.0, 1.0, p) << '\n';
+                output << "         vertex " << svertex(1.0, 0.0, 0.0, p) << '\n';
+                output << "      endloop" << '\n';
+                output << "   endfacet" << '\n';
+                output << "   facet normal 1.0 0.0 0.0" << '\n';
+                output << "      outer loop" << '\n';
+                output << "         vertex " << svertex(1.0, 0.0, 0.0, p) << '\n';
+                output << "         vertex " << svertex(1.0, 1.0, 1.0, p) << '\n';
+                output << "         vertex " << svertex(1.0, 0.0, 1.0, p) << '\n';
+                output << "      endloop" << '\n';
+                output << "   endfacet" << '\n';
+
+                output << "   facet normal 0.0 0.0 -1.0" << '\n';
+                output << "      outer loop" << '\n';
+                output << "         vertex " << svertex(0.0, 1.0, 0.0, p) << '\n';
+                output << "         vertex " << svertex(1.0, 1.0, 0.0, p) << '\n';
+                output << "         vertex " << svertex(0.0, 0.0, 0.0, p) << '\n';
+                output << "      endloop" << '\n';
+                output << "   endfacet" << '\n';
+                output << "   facet normal 0.0 0.0 -1.0" << '\n';
+                output << "      outer loop" << '\n';
+                output << "         vertex " << svertex(0.0, 0.0, 0.0, p) << '\n';
+                output << "         vertex " << svertex(1.0, 1.0, 0.0, p) << '\n';
+                output << "         vertex " << svertex(1.0, 0.0, 0.0, p) << '\n';
+                output << "      endloop" << '\n';
+                output << "   endfacet" << '\n';
+
+                output << "   facet normal 0.0 1.0 0.0" << '\n';
+                output << "      outer loop" << '\n';
+                output << "         vertex " << svertex(1.0, 1.0, 1.0, p) << '\n';
+                output << "         vertex " << svertex(1.0, 1.0, 0.0, p) << '\n';
+                output << "         vertex " << svertex(0.0, 1.0, 1.0, p) << '\n';
+                output << "      endloop" << '\n';
+                output << "   endfacet" << '\n';
+                output << "   facet normal 0.0 1.0 0.0" << '\n';
+                output << "      outer loop" << '\n';
+                output << "         vertex " << svertex(0.0, 1.0, 1.0, p) << '\n';
+                output << "         vertex " << svertex(1.0, 1.0, 0.0, p) << '\n';
+                output << "         vertex " << svertex(0.0, 1.0, 0.0, p) << '\n';
+                output << "      endloop" << '\n';
+                output << "   endfacet" << '\n';
+
+                output << "   facet normal 0.0 -1.0 0.0" << '\n';
+                output << "      outer loop" << '\n';
+                output << "         vertex " << svertex(1.0, 0.0, 0.0, p) << '\n';
+                output << "         vertex " << svertex(1.0, 0.0, 1.0, p) << '\n';
+                output << "         vertex " << svertex(0.0, 0.0, 0.0, p) << '\n';
+                output << "      endloop" << '\n';
+                output << "   endfacet" << '\n';
+                output << "   facet normal 0.0 -1.0 0.0" << '\n';
+                output << "      outer loop" << '\n';
+                output << "         vertex " << svertex(0.0, 0.0, 0.0, p) << '\n';
+                output << "         vertex " << svertex(1.0, 0.0, 1.0, p) << '\n';
+                output << "         vertex " << svertex(0.0, 0.0, 1.0, p) << '\n';
+                output << "      endloop" << '\n';
+                output << "   endfacet" << '\n';
+
+                output << "endsolid" << '\n';
+            }
+            
 
             model_completed = true;
         }
@@ -165,7 +274,7 @@ void onMouse(int event, int x, int y, int, void* data)
         if(control->mirror1 == EMPTY_RECT)
         {
             control->mirror1 = Rect(Point{control->ix, control->iy}, Point{x, y});
-            control->info = "Mark 2nd mirror";
+            control->info = "Mark lower mirror";
         }
         else if(control->mirror2 == EMPTY_RECT)
         {
@@ -180,7 +289,7 @@ void onMouse(int event, int x, int y, int, void* data)
     }
 }
 
-std::vector<Point> Controller::imregionalmax(Mat &input, int nLocMax, float threshold, float minDistBtwLocMax)
+std::vector<Point> Controller::imregionalmax(Mat &input, int nLocMax, float threshold, float thres_max, float minDistBtwLocMax)
 {
     std::vector<Point> locations;
     Mat scratch = input.clone();
@@ -195,7 +304,7 @@ std::vector<Point> Controller::imregionalmax(Mat &input, int nLocMax, float thre
         Point location;
         double maxVal;
         minMaxLoc(scratch, NULL, &maxVal, NULL, &location, mask);
-        if (maxVal > threshold) {
+        if (maxVal > threshold && maxVal < thres_max) {
             locations.emplace_back(location);
             circle(scratch, location, minDistBtwLocMax, {0,0,0}, -1);
         } else {
@@ -228,7 +337,7 @@ void Controller::reset_drawing()
     mirror2 = mirror1 = mouse = EMPTY_RECT;
     model_completed = false;
 
-    info = "Mark first mirror";
+    info = "Mark upper mirror";
 }
 
 bool Controller::mirrors_ready()
